@@ -1,4 +1,9 @@
+#!/usr/local/bin/python
 import csv
+
+
+INFILENAME = 'loansData.csv'
+OUTFILENAME = 'loansData_clean.csv'
 
 
 def clean_loan_length(ll):
@@ -37,22 +42,20 @@ def clean_percent(p):
     return p.replace("%", "")
 
 
-if __name__ == "__main__":
-    outfile = open(r"loansData_clean.csv", "w")
-    infile = open(r"loansData.csv")
+def main(infilename=INFILENAME, outfilename=OUTFILENAME):
+    infile = open(outfilename)
+    outfile = open(infilename, "w")
     reader = csv.DictReader(infile)
+    writer = csv.DictWriter(outfile, reader.fieldnames)
 
-    cnt = 0
     for aline in reader:
-        if cnt == 0:
-            outfile.write(",".join(aline.keys()) + "\n")
-
         aline["FICO.Range"] = clean_FICO_range(aline["FICO.Range"])
         aline["Interest.Rate"] = clean_percent(aline["Interest.Rate"])
         aline["Debt.To.Income.Ratio"] = clean_percent(aline["Debt.To.Income.Ratio"])
         aline["Employment.Length"] = clean_employment_length(aline["Employment.Length"])
         aline["Loan.Length"] = clean_loan_length(aline["Loan.Length"])
+        writer.writeline(aline)
 
-        outfile.write(",".join(["{}".format(aline[k]) for k in aline.keys()]))
-        outfile.write("\n")
-        cnt += 1
+
+if __name__ == "__main__":
+    main()
