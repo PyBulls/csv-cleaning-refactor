@@ -7,15 +7,14 @@ OUTFILENAME = 'loansData_clean.csv'
 
 
 def clean_loan_length(ll):
-    ll_lut = {
+    return {
         "36 months": 36,
         "60 months": 60,
-    }
-    return ll_lut[ll]
+    }[ll]
 
 
 def clean_employment_length(el):
-    el_lut = {
+    return {
         "< 1 year": 0,
         "2 years": 2,
         "5 years": 5,
@@ -28,18 +27,26 @@ def clean_employment_length(el):
         "7 years": 7,
         "4 years": 4,
         "n/a": 0,
-    }
-    return el_lut[el]
+    }[el]
 
 
-def clean_FICO_range(fr):
-    low, hi = fr.split("-")
-    hi = hi.strip()
-    return ((int(hi) - int(low)) / 2) + int(low)
+def clean_fico_range(fico_range):
+    low, hi = fico_range.split("-")
+    low, hi = int(low), int(hi)
+    return (hi - low) / 2 + low
 
 
 def clean_percent(p):
     return p.replace("%", "")
+
+
+def clean_line(line):
+    line["FICO.Range"] = clean_fico_range(line["FICO.Range"])
+    line["Interest.Rate"] = clean_percent(line["Interest.Rate"])
+    line["Debt.To.Income.Ratio"] = clean_percent(line["Debt.To.Income.Ratio"])
+    line["Employment.Length"] = clean_employment_length(line["Employment.Length"])
+    line["Loan.Length"] = clean_loan_length(line["Loan.Length"])
+    return line
 
 
 def main(infilename=INFILENAME, outfilename=OUTFILENAME):
@@ -49,12 +56,7 @@ def main(infilename=INFILENAME, outfilename=OUTFILENAME):
     writer = csv.DictWriter(outfile, reader.fieldnames)
 
     for aline in reader:
-        aline["FICO.Range"] = clean_FICO_range(aline["FICO.Range"])
-        aline["Interest.Rate"] = clean_percent(aline["Interest.Rate"])
-        aline["Debt.To.Income.Ratio"] = clean_percent(aline["Debt.To.Income.Ratio"])
-        aline["Employment.Length"] = clean_employment_length(aline["Employment.Length"])
-        aline["Loan.Length"] = clean_loan_length(aline["Loan.Length"])
-        writer.writeline(aline)
+        writer.writeline(clean_line(aline))
 
 
 if __name__ == "__main__":
